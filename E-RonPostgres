@@ -1,0 +1,25 @@
+ create E-R model in PostgreSQL, you would create a table for the Person entity with appropriate columns. Here's how you can do it
+
+        CREATE TABLE Person (
+            person_id SERIAL PRIMARY KEY,
+            first_name VARCHAR(50),
+            last_name VARCHAR(50),
+            company_name VARCHAR(100),
+            address VARCHAR(255),
+            city VARCHAR(100),
+            state VARCHAR(2),
+            zip VARCHAR(20),
+            phone1 VARCHAR(20),
+            phone2 VARCHAR(20),
+            email VARCHAR(100),
+            department VARCHAR(100)
+        );
+
+
+This SQL script creates a table named Person with columns corresponding to the attributes defined in the E-R model. Some considerations:
+
+SERIAL PRIMARY KEY: This creates an auto-incrementing integer column named person_id, which serves as the primary key.
+VARCHAR(n): This specifies variable-length character strings, where n is the maximum length of the string.
+state VARCHAR(2): Assuming the state abbreviations will always be two characters long.
+Ensure that the lengths specified for VARCHAR columns are appropriate for your data.
+Once you execute this script in your PostgreSQL database, you'll have a table named Person ready to store the data according to your E-R model
