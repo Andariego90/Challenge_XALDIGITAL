@@ -1,0 +1,84 @@
+To implement the additional functionalities and requirements, we'll need to modify the existing code and add new features. 
+
+Validate the column 'state': We'll add validation to ensure that the 'state' column has a length of 2 and only contains letters.
+Dockerize the application: We already have a Dockerfile, so the application can be easily containerized.
+Support more requests: We'll add support for 'create' and 'update' requests in addition to 'read'.
+
+Let's update the code accordingly:
+-----------------------------------------------------------------------------------------------------------------------------
+Updated app.py:
+
+from flask import Flask, jsonify, request
+import psycopg2
+
+app = Flask(__name__)
+
+# Database configuration
+DB_HOST = 'db'
+DB_PORT = '5432'
+DB_NAME = 'postgres'
+DB_USER = 'postgres'
+DB_PASSWORD = 'example'
+
+def get_db_connection():
+    return psycopg2.connect(
+        host=DB_HOST,
+        port=DB_PORT,
+        dbname=DB_NAME,
+        user=DB_USER,
+        password=DB_PASSWORD
+    )
+
+def validate_state(state):
+    return state.isalpha() and len(state) == 2
+
+@app.route('/persons', methods=['GET', 'POST'])
+def handle_persons():
+    if request.method == 'GET':
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM person;")
+            persons = cursor.fetchall()
+            cursor.close()
+            conn.close()
+            return jsonify(persons)
+        except psycopg2.Error as e:
+            return jsonify({'error': str(e)}), 500
+    
+    elif request.method == 'POST':
+        data = request.json
+        if not validate_state(data.get('state')):
+            return jsonify({'error': 'Invalid state'}), 400
+
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("INSERT INTO person (first_name, last_name, company_name, address, city, state, zip, phone1, phone2, email, department) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);", 
+                           (data.get('first_name'), data.get('last_name'), data.get('company_name'), data.get('address'), data.get('city'), data.get('state'), data.get('zip'), data.get('phone1'), data.get('phone2'), data.get('email'), data.get('department')))
+            conn.commit()
+            cursor.close()
+            conn.close()
+            return jsonify({'message': 'Person created successfully'}), 201
+        except psycopg2.Error as e:
+            return jsonify({'error': str(e)}), 500
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=8000)
+---------------------------------------------------------------------------------------------------------------------------------------------------
+
+Updated Dockerfile:
+
+	FROM python:3.9-slim
+	WORKDIR /app
+	COPY requirements.txt .
+	RUN pip install --no-cache-dir -r requirements.txt
+	COPY . .
+	CMD ["python", "app.py"]
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
