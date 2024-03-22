@@ -1,0 +1,88 @@
+To create a REST API that ingests data from the CentOS server into the PostgreSQL database and supports the 'read' request, you can follow these steps using 
+Python with Flask for the API and psycopg2 for interacting with PostgreSQL.
+
+First, create a Dockerfile to build your API application:
+
+      FROM python:3.9-slim
+      WORKDIR /app
+      COPY requirements.txt .
+      RUN pip install --no-cache-dir -r requirements.txt
+      COPY . .
+      CMD ["python", "app.py"]
+
+Then, create a requirements.txt file with the necessary dependencies:
+
+	Flask==2.0.2
+	psycopg2-binary==2.9.1
+
+
+Now, lets write the Python code for your REST API in app.py:
+
+	from flask import Flask, jsonify
+	import psycopg2
+	app = Flask(__name__)
+
+	# Database configuration
+	DB_HOST = 'db'
+	DB_PORT = '5432'
+	DB_NAME = 'postgres'
+	DB_USER = 'postgres'
+	DB_PASSWORD = 'example'
+	
+	def get_db_connection():
+    		return psycopg2.connect(
+        		host=DB_HOST,
+        		port=DB_PORT,
+        		dbname=DB_NAME,
+        		user=DB_USER,
+        		password=DB_PASSWORD
+    					)
+
+	@app.route('/persons', methods=['GET'])
+	def get_persons():
+    		try:
+        		conn = get_db_connection()
+      			cursor = conn.cursor()
+        		cursor.execute("SELECT * FROM person;")
+        		persons = cursor.fetchall()
+        		cursor.close()
+        		conn.close()
+		        return jsonify(persons)
+			    except psycopg2.Error as e:
+			        return jsonify({'error': str(e)}), 500
+		if __name__ == '__main__':
+    			app.run(host='0.0.0.0', port=8000)
+
+This code defines a simple Flask application with one route /persons that handles the 'GET' request to fetch all persons from the PostgreSQL database.
+
+Finally, update your docker-compose.yml to include your API service:
+
+	version: '3.1'
+	services:
+	  db:
+	    image: postgres
+	    restart: always
+	    environment:
+	      POSTGRES_PASSWORD: example
+	    ports:
+	      - 5432:5432
+	    networks:
+	      - postgres
+	  centos:
+	    image: centos
+	  networks:
+	      - postgres
+	  api:
+	    build: .
+	    ports:
+	      - 8000:8000
+	    depends_on:
+	      - db
+	    networks:
+	      - postgres
+	networks:
+	  postgres:
+	    driver: bridge
+
+Now, you can run docker-compose up --build to build and start your services. 
+Your REST API will be accessible at http://localhost:8000/persons, and it will retrieve data from the PostgreSQL database running in the db service.
