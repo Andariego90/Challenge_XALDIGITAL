@@ -1,0 +1,54 @@
+
+To enforce access restrictions between the API server and the PostgreSQL database, as well as between the CentOS server and the database, you can implement firewall rules and PostgreSQL authentication settings.
+
+Restrict API server access to the PostgreSQL database:
+
+Configure the PostgreSQL database to listen only on localhost (127.0.0.1) by setting the listen_addresses parameter in postgresql.conf.
+Modify the pg_hba.conf file to allow connections only from localhost and the API server's IP address. This ensures that only the API server can access the database.
+Restrict CentOS server access to the PostgreSQL database:
+
+Ensure that the CentOS server's firewall blocks all incoming connections to the PostgreSQL port (default is 5432) from external sources except for the PostgreSQL database server.
+Configure the PostgreSQL database to authenticate clients connecting from the CentOS server using password authentication or other secure methods. Ensure that only authorized users can access the database.
+Here's an example of how you can configure the firewall and PostgreSQL settings:
+
+Firewall Configuration on CentOS Server:
+
+# Allow outgoing traffic
+sudo iptables -A OUTPUT -j ACCEPT
+
+# Allow incoming PostgreSQL traffic only from the PostgreSQL server
+sudo iptables -A INPUT -p tcp --dport 5432 -s <postgres_server_ip> -j ACCEPT
+
+# Drop all other incoming traffic to PostgreSQL port
+sudo iptables -A INPUT -p tcp --dport 5432 -j DROP
+
+# Save the rules
+sudo iptables-save > /etc/sysconfig/iptables
+
+--------
+Replace <postgres_server_ip> with the IP address of the PostgreSQL server.
+
+PostgreSQL Configuration:
+Edit postgresql.conf:
+# Listen only on localhost
+listen_addresses = 'localhost'
+--------------------------------------------------------------------------
+Edit pg_hba.conf:
+
+# Allow connections from the API server
+host    all             all             <api_server_ip>/32     md5
+
+# Allow local connections
+host    all             all             127.0.0.1/32            md5
+
+# Reject all other connections
+host    all             all             all                     reject
+
+
+--------------------------------------
+Replace <api_server_ip> with the IP address of the API server.
+
+After making these changes, restart the PostgreSQL service for the settings to take effect.
+Ensure that your PostgreSQL database users have appropriate permissions to access the database. Additionally, consider using SSL encryption for secure communication between the API server and the database.
+With these configurations, access to the PostgreSQL database is restricted to only the API server and the PostgreSQL server itself. 
+The CentOS server will not be able to connect to the database unless explicitly allowed.
