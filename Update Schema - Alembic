@@ -1,0 +1,51 @@
+To implement a mechanism to create or update the schema in PostgreSQL, you can use migration tools like Alembic.
+Alembic allows you to define changes to your database schema in Python scripts called "migrations."
+These migrations can then be applied to your database to create or update the schema as needed.
+
+
+1.Install Alembic:
+   
+   First, install Alembic using pip:
+
+   ---bash
+   pip install alembic
+   ---
+
+2. Initialize Alembic:
+
+   Navigate to your project directory and run the following command to initialize Alembic:
+
+   ---
+   alembic init alembic
+   ---
+
+   This command creates an `alembic` directory in your project with necessary configuration files.
+
+3. Configure Alembic:
+
+   Modify the `alembic.ini` file to specify your database connection string. Update the `sqlalchemy.url` parameter with your PostgreSQL database connection string.
+
+4. Create Migration Scripts:
+
+   Use Alembic to generate migration scripts based on changes to your database schema. For example, if you want to create the `person` table, you can generate a migration script with the following command:
+
+   ---
+   alembic revision --autogenerate -m "Create person table"
+   ---
+
+   This command generates a new migration script in the `alembic/versions` directory based on the current state of your database models.
+
+5. Apply Migrations:
+
+   Once you have created migration scripts, you can apply them to your database to create or update the schema. Use the following command to apply migrations:
+
+   ---
+   alembic upgrade head
+   ---
+
+   This command applies all pending migrations to the database.
+
+6. Updating Schema:
+
+   Whenever you make changes to your database schema, generate a new migration script using the `alembic revision` command. Alembic will compare the current state of your database with the changes you've made and generate a migration script accordingly.
+
