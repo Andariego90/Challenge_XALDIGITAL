@@ -1,0 +1,71 @@
+To create unit tests and measure code coverage for the Flask API, you can use the `unittest` framework for writing tests and the `coverage` tool for measuring code coverage.
+Below is an example of how you can structure your unit tests and measure coverage.
+
+First, install the necessary packages:
+
+---
+pip install coverage
+---
+
+Now, let's create a file named `test_app.py` for our unit tests:
+
+---
+import unittest
+import json
+from app import app
+
+class TestAPI(unittest.TestCase):
+    def setUp(self):
+        self.app = app.test_client()
+        self.data = {
+            'first_name': 'John',
+            'last_name': 'Doe',
+            'company_name': 'ABC Inc.',
+            'address': '123 Main St',
+            'city': 'Anytown',
+            'state': 'CA',
+            'zip': '12345',
+            'phone1': '555-1234',
+            'phone2': '555-5678',
+            'email': 'john.doe@example.com',
+            'department': 'IT'
+        }
+
+    def test_get_persons(self):
+        response = self.app.get('/persons')
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.assertTrue(isinstance(data, list))
+
+    def test_create_person(self):
+        response = self.app.post('/persons', json=self.data)
+        self.assertEqual(response.status_code, 201)
+
+    def test_invalid_state(self):
+        data = self.data.copy()
+        data['state'] = 'California'
+        response = self.app.post('/persons', json=data)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn(b'Invalid state', response.data)
+
+if __name__ == '__main__':
+    unittest.main()
+---
+
+In this test file:
+
+- `setUp`: Sets up common test data and the Flask test client before each test.
+- `test_get_persons`: Tests the `/persons` endpoint to retrieve persons.
+- `test_create_person`: Tests the `/persons` endpoint to create a person.
+- `test_invalid_state`: Tests the validation of the 'state' field.
+
+-----------------------------------------------------------------------------------
+To run the tests and measure coverage, execute the following commands:
+
+---bash
+coverage run --source=app test_app.py
+coverage report -m
+---
+
+This will execute the tests and generate a coverage report showing the percentage of code covered by the tests.
+Adjust the test data and test cases as needed based on your specific application requirements.
